@@ -8,8 +8,8 @@
 
 ## Steps to checkout the repository and compile
 
-<pre><code> git clone https://github.com/adamjaro/lmon.git </pre></code>
-<pre><code> cd lmon </pre></code>
+<pre><code> git clone git@github.com:ZhengqiaoZhang/ComptonPolarimeter.git </pre></code>
+<pre><code> cd compton </pre></code>
 <pre><code> mkdir build </pre></code>
 <pre><code> cd build </pre></code>
 <pre><code> cmake ../ </pre></code>
