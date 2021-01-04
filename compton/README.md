@@ -1,10 +1,10 @@
-# Geant simulation of luminosity monitor for the EIC at BNL
+# Geant simulation of compton polarimeter for the EIC at BNL
 
 ## Dependencies
 
 - Geat 4
 - ROOT 5/6
-- boost (already required by ROOT)
+
 
 ## Steps to checkout the repository and compile
 
