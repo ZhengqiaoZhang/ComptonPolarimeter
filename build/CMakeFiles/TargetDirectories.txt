@@ -1,0 +1,4 @@
+/Users/zhengqiao/test_geant4/compton_IP6_latticeDesign/build/CMakeFiles/rebuild_cache.dir
+/Users/zhengqiao/test_geant4/compton_IP6_latticeDesign/build/CMakeFiles/edit_cache.dir
+/Users/zhengqiao/test_geant4/compton_IP6_latticeDesign/build/CMakeFiles/run.dir
+/Users/zhengqiao/test_geant4/compton_IP6_latticeDesign/build/CMakeFiles/det.dir

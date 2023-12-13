@@ -1,0 +1,11 @@
+
+#run macro for local testing
+
+#detectors and components
+
+
+
+
+# Initialize kernel
+/run/initialize
+/run/beamOn 2040331

@@ -1,0 +1,150 @@
+void calPower(const char *aa) {
+	double tFlux;
+
+	if (strcmp(aa, "all") == 0) tFlux = 5.26e18;
+	else if (strcmp(aa, "B2") == 0) tFlux = 5.28e18;
+	else if (strcmp(aa, "Q") == 0) tFlux = 1.6e16;
+	else if (strcmp(aa, "Q_tail") == 0) tFlux = 1.49e16;
+
+	TH1D *en_exit = new TH1D("e_exit","e_exit",4000,0,2000);
+
+
+	double SR=1;
+
+	gStyle->SetOptStat(0);
+	gStyle->SetOptDate(0);
+	gStyle->SetOptTitle(0);
+
+
+	// Open the file
+	TFile *f1 = TFile::Open("compton.root");
+
+	TFile *f2;
+
+	if (strcmp(aa, "all") == 0)f2 = TFile::Open("weight_all_beamtail.root");
+	else if (strcmp(aa, "B2") == 0)f2 = TFile::Open("weight_onlyB2.root");
+	else if (strcmp(aa, "Q") == 0) f2 = TFile::Open("weight_onlyQ.root");
+	else if (strcmp(aa, "Q_tail") == 0) f2 = TFile::Open("weight_onlyQ_beamtail.root");
+
+
+	// Get the tree from the file
+	TTree *tree1;
+	f1->GetObject("DetectorTree", tree1);
+
+	TTree *tree2;
+	f2->GetObject("Weight", tree2);
+
+	// Variables to hold data
+	Double_t b1;
+	float b2,b3;
+	double win_x,win_y;
+	double total_power,total_power_exitPipe,total_power_deposite_exitWin,total_power_At_exitWin,total_power_SR,power_shield,power_lead_layer2,power_PbWO4_en;
+	double total_flux;
+	double total_n;
+	double total_n_20;
+	double pipe_b1,SR_x,SR_y;
+	double exitWin_en;
+	double win_EnPrim;
+	double diff;
+	double shield_en,lead_layer2_en,PbWO4_en;
+
+	long double totalE = 0;
+
+	TH2D *xy = new TH2D("xy","xy",800,-20,20,800,-20,20);
+	TH1D *x = new TH1D("x","x",1000,-20,20);
+	TH1D *en_pipe = new TH1D("e","e",1000,0,20000);
+
+	// Set the branch addresses to the data variables
+	if(SR!=0){
+	tree1->SetBranchAddress("phoDet_en", &b1);
+	tree1->SetBranchAddress("phoDet_hx", &SR_x);
+	tree1->SetBranchAddress("phoDet_hy", &SR_y);}
+	tree1->SetBranchAddress("ExitWin_EnPrim",&win_EnPrim);
+	tree1->SetBranchAddress("ExitWin_en", &exitWin_en);
+	tree1->SetBranchAddress("Shield_en",&shield_en);
+	tree2->SetBranchAddress("flux", &b2);
+	tree2->SetBranchAddress("energy", &b3);
+
+	// Loop over all entries in the tree
+	Int_t nentries = tree1->GetEntries();
+	cout<<"nentries="<<nentries<<endl;
+	for (Int_t i = 0; i < nentries; i++) {
+		// Read the entry
+		tree1->GetEntry(i);
+		tree2->GetEntry(i);
+
+		// Now you can do something with the data
+		// For example, let's just print the data
+		//printf("entry %d: branch1=%f, branch2=%f\n", i, b1, b2);
+
+		total_flux = total_flux+b2;
+		total_power =total_power+b3*1.0e-9*b2;
+
+
+
+		if(win_EnPrim!=-9999){
+			total_power_exitPipe = total_power_exitPipe+win_EnPrim*b2;
+			total_power_At_exitWin = total_power_At_exitWin+win_EnPrim*b2;
+		}
+
+
+		total_power_deposite_exitWin = total_power_deposite_exitWin+exitWin_en*b2;
+
+		if(b1!=0&&SR!=0){
+			//cout<<i<<" "<<b3*0.001<<" "<<b2<<endl;
+			total_power_SR=total_power_SR+b1*b2;
+		}
+
+		if(shield_en!=0)power_shield=+power_shield+shield_en*b2;
+
+
+
+
+
+		if(win_EnPrim!=-9999){
+			en_exit->Fill(win_EnPrim*1000.0,b2);
+			totalE = totalE  + win_EnPrim*1000.0*b2;
+			total_n = total_n + b2;
+			en_pipe->Fill(win_EnPrim*1000.0,b2);
+		}
+		//if(b1>20.0*0.001)total_n_20 = total_n_20 + b2;
+		if(win_EnPrim>20.0*0.001)total_n_20 = total_n_20 + b2;
+
+
+		//    if(b1!=0)xy->Fill(win_x- 527.80683,win_y);
+		if(b1!=0&&SR!=0)xy->Fill(SR_x+183.22759,SR_y,b1*b2*0.001);
+	}
+	cout<<"total_energy_keV in Pipe per bunch ="<<total_power_exitPipe*(tFlux/total_flux)/22883065.0*1.0e6<<endl;
+	cout<<"total power="<<total_power*tFlux/total_flux*1.602176487e-10<<endl;
+	cout<<"total power in Exit Pipe="<<0.001*total_power_exitPipe*tFlux/total_flux*1.602176487e-10<<endl;
+	cout<<"total power in Exit win="<<0.001*total_power_At_exitWin*tFlux/total_flux*1.602176487e-10<<endl;
+	cout<<"total power deposited in Exit Win="<<0.001*total_power_deposite_exitWin*tFlux/total_flux*1.602176487e-10<<endl;
+	cout<<"total photon number (>1keV) per bunch ="<<total_n*tFlux/total_flux/22883065.0<<endl;
+	cout<<"total photon number (>20keV per bunch ="<<total_n_20*tFlux/total_flux/22883065.0<<endl;
+	cout<<"total power deposited in shield = "<<0.001*power_shield*tFlux/total_flux*1.602176487e-10<<" energy per bunch (GeV) ="<<power_shield*(tFlux/total_flux)/22883065.0*0.001<<endl;
+	cout<<"total power deposited in photon detector = "<<0.001*total_power_SR*tFlux/total_flux*1.602176487e-10<<" energy per bunch (GeV) ="<<total_power_SR*(tFlux/total_flux)/22883065.0*0.001<<endl;
+
+
+	xy->Scale(tFlux/total_flux*1.602176487e-10);
+
+	xy->GetXaxis()->SetTitle("X (mm)");
+	xy->GetYaxis()->SetTitle("Y (mm)");
+
+	//xy->Draw("colz");
+	en_exit->Draw();
+	cout<<"critical E(keV) = "<<totalE/total_n*1.0/0.308<<" average E="<<totalE/total_n<<endl;
+//	en_pipe->Draw();
+
+
+	// Close the file
+}
+
+void runCalPower(int argc, char **argv) {
+	if (argc != 2) {
+		std::cerr << "Usage: root -l -b -q 'runCalPower.C(\"parameter\")'" << std::endl;
+		return;
+	}
+
+	calPower(argv[1]);
+}
+
